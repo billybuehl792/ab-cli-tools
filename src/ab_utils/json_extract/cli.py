@@ -1,5 +1,4 @@
 import argparse
-import os
 import json
 from tempfile import TemporaryDirectory
 from pathlib import Path
