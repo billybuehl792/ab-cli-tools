@@ -1,6 +1,8 @@
 import argparse
+import csv
 import json
 from pathlib import Path
+import sys
 from typing import Literal
 from google import genai
 
@@ -8,14 +10,17 @@ from ab_utils.gemini_client import client as gemini_client
 from ab_utils.constants import GEMINI_APP_NAME, DEFAULT_GEMINI_MODEL
 
 
-ResponseType = Literal["json", "string"]
+ResponseType = Literal["json", "string", "csv"]
 
 
 def fetch_gemini(prompt: str, model: str, response_type: ResponseType = "string", file_paths: list[Path] = []) -> str:
     """Call Google Gemini."""
 
-    mime_type = {"json": "application/json",
-                 "string": "text/plain"}[response_type]
+    mime_type = {
+        "json": "application/json",
+        "string": "text/plain",
+        "csv": "application/json",
+    }[response_type]
 
     chat = gemini_client.chats.create(
         model=model,
@@ -33,11 +38,7 @@ def fetch_gemini(prompt: str, model: str, response_type: ResponseType = "string"
     else:
         response = chat.send_message([prompt])
 
-    result = response.text
-    if (response_type == "json"):
-        result = json.loads(result or "{}")
-
-    return result
+    return response.text or ""
 
 
 def add_parser(subparsers):
@@ -57,7 +58,7 @@ def add_parser(subparsers):
 
 def run(args: argparse.Namespace):
     output_file = Path(args.output) if args.output else None
-    response_type = str(args.type)
+    response_type = args.type
 
     files: list[Path] = []
     if args.files:
@@ -65,16 +66,27 @@ def run(args: argparse.Namespace):
             files.append(Path(file))
 
     result = fetch_gemini(args.prompt, args.model, response_type, files)
+    result_json = result_json = json.loads(result or "{}")
 
-    if (output_file):
-        with open(output_file, "w") as f:
-            if response_type == "json":
-                json.dump(result, f, indent=2)
-            else:
+    if output_file:
+        if response_type == "json":
+            with open(output_file, "w") as f:
+                json.dump(result_json, f, indent=2)
+        elif response_type == "csv":
+            with open(output_file, "w") as f:
+                writer = csv.DictWriter(f, fieldnames=result_json.keys())
+                writer.writeheader()
+                writer.writerow(result_json)
+        else:
+            with open(output_file, "w") as f:
                 f.write(result)
-            print(f"Output written to: {output_file.name}")
+        print(f"Output written to: {output_file.name}")
     else:
         if (response_type == "json"):
-            print("Extracted JSON:\n\n", json.dumps(result, indent=2))
+            print(json.dumps(result_json, indent=2))
+        elif response_type == "csv":
+            writer = csv.DictWriter(sys.stdout, fieldnames=result_json.keys())
+            writer.writeheader()
+            writer.writerow(result_json)
         else:
             print(result)
