@@ -1,3 +1,5 @@
+APP_NAME = "json-extract"
+
 JSON_EXTRACT_PROMPT = """
 Extract all meaningful information from these document pages
 into a structured JSON object.

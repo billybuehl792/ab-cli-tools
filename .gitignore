@@ -11,4 +11,5 @@ wheels/
 
 # Other
 .vscode
-test_data
+test_data/
+config/

@@ -1,44 +1,14 @@
 import argparse
 from pathlib import Path
 from uuid import uuid4
-from google import genai
 from datetime import date, datetime, timedelta, timezone
 
-from ab_utils.gemini_client import client as gemini_client
-from ab_utils.constants import COMPANY_NAME, ICS_EXTRACT_APP_NAME, DEFAULT_GEMINI_MODEL
-
+from ab_utils.gemini.api import fetch_gemini
+from ab_utils.gemini.models import GeminiOptions, ResponseMimeType
+from ab_utils.constants import COMPANY_NAME, DEFAULT_GEMINI_MODEL
 from .models import CalendarEvents
-from .constants import ICS_EXTRACT_PROMPT
-
-
-def escape_ics(value: str) -> str:
-    """Escape text according to the iCalendar format."""
-    return (
-        str(value)
-        .replace("\\", "\\\\")
-        .replace(";", "\\;")
-        .replace(",", "\\,")
-        .replace("\n", "\\n")
-    )
-
-
-def extract_calendar_data(file_path: Path, prompt: str, model: str) -> CalendarEvents:
-    """Extract calendar event data from an image file."""
-
-    print(f"Extracting Calendar Events from {file_path.name}...")
-    file = gemini_client.files.upload(file=file_path)
-    chat = gemini_client.chats.create(
-        model=model,
-        config=genai.types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=CalendarEvents,
-        ),
-    )
-
-    response = chat.send_message([file, prompt])
-    result = CalendarEvents.model_validate_json(response.text or "{}")
-
-    return result
+from .utils import escape_ics
+from .constants import APP_NAME, ICS_EXTRACT_PROMPT
 
 
 def create_ics(calendar_events: CalendarEvents, output_path: Path = Path("output.ics")):
@@ -88,32 +58,35 @@ def create_ics(calendar_events: CalendarEvents, output_path: Path = Path("output
 
 
 def add_parser(subparsers):
-    parser: argparse.ArgumentParser = subparsers.add_parser(ICS_EXTRACT_APP_NAME, help="Extract calendar events from an image",
+    parser: argparse.ArgumentParser = subparsers.add_parser(APP_NAME, help="Extract calendar events from an image",
                                                             description="Extract calendar events from an image.")
-    parser.add_argument("image", help="Path to calendar image")
+    parser.add_argument("files", nargs="+",
+                        type=Path, help="Path to one or more files")
+    parser.add_argument("-p", "--prompt", default=ICS_EXTRACT_PROMPT,
+                        help=f"ICS extraction prompt (default: {ICS_EXTRACT_PROMPT})")
     parser.add_argument("-m", "--model", default=DEFAULT_GEMINI_MODEL,
                         help=f"Gemini model (default: {DEFAULT_GEMINI_MODEL})")
-    parser.add_argument("-p", "--prompt", default=None,
-                        help=f"ICS extraction prompt (default: {ICS_EXTRACT_PROMPT})")
     parser.add_argument("-o", "--output", default="output.ics",
                         help="Output path for the ICS file (default: output.ics)")
     parser.add_argument("-n", "--events", type=int,
                         default=None, help="Expected number of events in the image")
+
     parser.set_defaults(func=run)
 
 
 def run(args: argparse.Namespace):
-    input_path = Path(args.image)
-    output_path = Path(args.output)
+    output_file = Path(args.output)
 
-    event_count = int(args.events) if args.events else None
-    prompt = str(args.prompt) if args.prompt else ICS_EXTRACT_PROMPT
-    if event_count is not None:
-        prompt += f"\n\nExpected number of events: {event_count}"
-
-    result = extract_calendar_data(input_path, prompt, args.model)
+    response = fetch_gemini(args.prompt, GeminiOptions(
+        model=args.model,
+        files=args.files or [],
+        response_mime_type=(ResponseMimeType.JSON),
+        response_schema=CalendarEvents
+    ))
+    result = CalendarEvents.model_validate_json(response.text or "{}")
 
     print("\nExtracted Calendar Data:\n", result.model_dump_json(indent=2))
 
-    create_ics(result, output_path)
-    print(f"\nOutput .ics written to {output_path.name}")
+    create_ics(result, output_file)
+
+    print(f"\nOutput .ics written to {output_file.name}")

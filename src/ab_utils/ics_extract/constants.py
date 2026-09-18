@@ -1,3 +1,5 @@
+APP_NAME = "ics-extract"
+
 ICS_EXTRACT_PROMPT = """
     You are extracting roofing job appointments from a photograph of work-order sheets.
 

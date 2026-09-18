@@ -8,9 +8,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
-from ab_utils.constants import PHOTOSHEET_APP_NAME
-
-from .constants import IMAGE_EXTENSIONS
+from .constants import APP_NAME, IMAGE_EXTENSIONS
 
 
 def get_image_files_from_dir(folder: Path):
@@ -219,16 +217,16 @@ def create_photosheet(
 
 
 def add_parser(subparsers):
-    parser: argparse.ArgumentParser = subparsers.add_parser(PHOTOSHEET_APP_NAME, help="Extract JSON from an image",
+    parser: argparse.ArgumentParser = subparsers.add_parser(APP_NAME, help="Extract JSON from an image",
                                                             description="Extract JSON data from an image.")
     parser.add_argument("folder", type=Path, help="Folder containing photos")
     parser.add_argument("-o", "--output", type=Path, default=Path("output.pdf"),
                         help="Output PDF filename (default: output.pdf)")
-    parser.add_argument("--columns", type=int, default=2,
+    parser.add_argument("-c", "--columns", type=int, default=2,
                         help="Number of photo columns (default: 2)")
-    parser.add_argument("--rows", type=int, default=3,
+    parser.add_argument("-r", "--rows", type=int, default=3,
                         help="Number of photo rows (default: 3)")
-    parser.add_argument("--title", help="Optional title")
+    parser.add_argument("-t", "--title", help="Optional title")
     parser.add_argument("--subtitle", help="Optional subtitle")
     parser.add_argument("--description", help="Optional description")
     parser.set_defaults(func=run)
