@@ -3,9 +3,11 @@ from pathlib import Path
 from uuid import uuid4
 from datetime import date, datetime, timedelta, timezone
 
+from ab_utils.constants import COMPANY_NAME
 from ab_utils.gemini.api import fetch_gemini
 from ab_utils.gemini.models import GeminiOptions, ResponseMimeType
-from ab_utils.constants import COMPANY_NAME, DEFAULT_GEMINI_MODEL
+from ab_utils.gemini.constants import DEFAULT_GEMINI_MODEL
+
 from .models import CalendarEvents
 from .utils import escape_ics
 from .constants import APP_NAME, ICS_EXTRACT_PROMPT
@@ -79,7 +81,7 @@ def run(args: argparse.Namespace):
 
     response = fetch_gemini(args.prompt, GeminiOptions(
         model=args.model,
-        files=args.files or [],
+        files=args.files,
         response_mime_type=(ResponseMimeType.JSON),
         response_schema=CalendarEvents
     ))
