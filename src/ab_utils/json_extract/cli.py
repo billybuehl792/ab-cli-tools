@@ -1,6 +1,7 @@
 import argparse
 import json
 from pathlib import Path
+import subprocess
 
 from ab_utils.gemini.api import fetch_gemini
 from ab_utils.gemini.models import GeminiOptions, ResponseMimeType
@@ -29,7 +30,8 @@ def add_parser(subparsers):
 
 def run(args: argparse.Namespace):
     response_schema = None
-    if args.type == "invoice":
+    is_invoice = args.type == "invoice"
+    if is_invoice:
         response_schema = Invoice
 
     response = fetch_gemini(args.prompt, GeminiOptions(
@@ -47,3 +49,6 @@ def run(args: argparse.Namespace):
         print(f"Output written to {output_file.name}")
     else:
         print(output)
+        if is_invoice:
+            invoice = Invoice.model_validate_json(response.text or "{}")
+            invoice.copy_items_to_clipboard()

@@ -5,6 +5,7 @@ from .ics_extract.cli import add_parser as calendar_event_extractor_parser
 from .json_extract.cli import add_parser as image_json_extractor_parser
 from .photosheet.cli import add_parser as photosheet_parser
 from .gemini.cli import add_parser as gemini_parser
+from .roof_estimate.cli import add_parser as roof_estimate_parser
 from .constants import COMPANY_NAME
 
 register_heif_opener()
@@ -20,6 +21,7 @@ def main():
     image_json_extractor_parser(subparsers)
     photosheet_parser(subparsers)
     gemini_parser(subparsers)
+    roof_estimate_parser(subparsers)
 
     args = parser.parse_args()
 
