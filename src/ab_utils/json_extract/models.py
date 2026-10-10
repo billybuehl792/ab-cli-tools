@@ -1,12 +1,11 @@
 from pydantic import BaseModel
-from decimal import Decimal
 
 
 class InvoiceItem(BaseModel):
     description: str
     quantity: float
-    unit_price: Decimal
-    amount: Decimal
+    unit_price: float
+    amount: float
 
 
 class Invoice(BaseModel):

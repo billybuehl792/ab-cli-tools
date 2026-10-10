@@ -1,7 +1,7 @@
 [project]
 name = "ab-utils"
 version = "0.1.0"
-description = "Add your description here"
+description = "CLI tools for A&B"
 readme = "README.md"
 authors = [
     { name = "billybuehl792", email = "billybuehl792@gmail.com" }
@@ -17,6 +17,8 @@ dependencies = [
 
 [project.scripts]
 ab-utils = "ab_utils.main:main"
+cp-roofr = "ab_utils.main:cp_roofr"
+cp-invoice = "ab_utils.main:cp_invoice"
 
 
 [build-system]

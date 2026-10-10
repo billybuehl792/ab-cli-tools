@@ -1,3 +1,4 @@
+import sys
 import argparse
 from pillow_heif.as_plugin import register_heif_opener
 
@@ -29,4 +30,16 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
+
+
+def cp_roofr():
+    sys.argv = [sys.argv[0], "roof-estimate", *sys.argv[1:],
+                "--extract-measurements", "--csv", "-c"]
+    main()
+
+
+def cp_invoice():
+    sys.argv = [sys.argv[0], "json-extract", *sys.argv[1:],
+                "-t", "invoice", "--csv", "-c"]
     main()
