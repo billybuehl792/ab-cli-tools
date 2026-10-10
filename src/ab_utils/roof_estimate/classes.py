@@ -1,8 +1,11 @@
+import json
 import math
 from pathlib import Path
 import pandas as pd
 
-from .models import CostItem, MaterialBreakdown, Pitch, RoofEstimateOptions, RoofMeasurements, MaterialCatalog, LaborCatalog
+from ab_utils.utils import flatten_dict, json_to_csv
+
+from .models import CostItem, LaborBreakdown, MaterialBreakdown, Pitch, RoofEstimateOptions, RoofMeasurements, MaterialCatalog, LaborCatalog
 from .constants import PITCH_PATTERN
 
 
@@ -187,11 +190,26 @@ class Labor:
     def __init__(self, measurements: RoofMeasurements, labor_catalog: LaborCatalog):
         self.measurements = measurements
         self.labor_catalog = labor_catalog
+        self.pitch_map = {
+            item.pitch: item.area for item in self.measurements.pitch_breakdown}
 
-    def get_labor(self):
-        return {
-            "cost": 0, "labor": []
-        }
+    def get_re_roof_comp(self, waste=1.12):
+        charge_item = self.labor_catalog.re_roof_comp
+        pitch_comp = [
+            self.pitch_map.get(3, 0),
+            self.pitch_map.get(4, 0),
+            self.pitch_map.get(5, 0),
+            self.pitch_map.get(6, 0),
+        ]
+        pitch_comp_total = sum(pitch_comp) * waste
+        quantity = math.ceil(pitch_comp_total / charge_item.unit_size)
+
+        return CostItem(**charge_item.model_dump(), quantity=quantity)
+
+    def get_labor(self) -> LaborBreakdown:
+        return LaborBreakdown(
+            re_roof_comp=self.get_re_roof_comp()
+        )
 
 
 class RoofEstimate:
@@ -210,6 +228,20 @@ class RoofEstimate:
 
     def get_labor(self):
         return self.labor.get_labor()
+
+    def get_json(self):
+        return json.dumps({
+            "customer": self.customer.model_dump(),
+            "materials": self.get_materials().model_dump(),
+            "labor": self.get_labor().model_dump()
+        }, indent=2)
+
+    def get_csv(self):
+        return json_to_csv({
+            "customer": self.customer.model_dump(),
+            "materials": self.get_materials().model_dump(),
+            "labor": self.get_labor().model_dump(),
+        })
 
 
 class RoofrReport:

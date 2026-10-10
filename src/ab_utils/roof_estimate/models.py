@@ -1,3 +1,4 @@
+import subprocess
 from typing import Literal
 from pydantic import BaseModel, Field
 
@@ -127,6 +128,38 @@ class RoofMeasurements(BaseModel):
     pitch_breakdown: list[Pitch] = Field(
         default_factory=list, alias="Pitch breakdown")
 
+    def get_formatted_csv(self):
+        rows = [
+            f"Total roof area (SQFT)\t{self.total_roof_area}",
+            f"Total flat area (SQFT)\t{self.total_flat_area}",
+            f"Total pitched area (SQFT)\t{self.total_pitched_area}",
+            f"Two Story (SQFT)\t{self.two_story}",
+            f"Two Layer (SQFT)\t{self.two_layer}",
+            f"Eaves (LF)\t{self.eaves}",
+            f"Valleys (LF)\t{self.valleys}",
+            f"Hips (LF)\t{self.hips}",
+            f"Ridges (LF)\t{self.ridges}",
+            f"Rakes (LF)\t{self.rakes}",
+            f"Wall Flashing (LF)\t{self.wall_flashing}",
+            f"Step Flashing (LF)\t{self.step_flashing}",
+            f"Transitions (SQFT)\t{self.transitions}",
+            f"Parapet Wall (SQFT)\t{self.parapet_wall}",
+            f"Unspecified (SQFT)\t{self.unspecified}",
+            f"Roof Facets (SQFT)\t{0}",
+            f"Chimneys\t{self.chimneys}",
+            f"Skylights\t{self.skylights}",
+            f"Vent Pipes\t{self.vent_pipes}",
+            f"RVK1As\t{self.rvk1as}"
+        ]
+
+        pitch_map = {item.pitch: item.area for item in self.pitch_breakdown}
+
+        for index, row in enumerate(rows):
+            if pitch_map.get(index) is not None:
+                rows[index] = row + f"\t{index}/12\t{pitch_map.get(index)}"
+
+        return "\n".join(rows)
+
 
 class RoofEstimateOptions(BaseModel):
     customer: Customer
@@ -164,34 +197,34 @@ class MaterialBreakdown(BaseModel):
 
 class LaborBreakdown(BaseModel):
     re_roof_comp: CostItem
-    re_deck: CostItem
-    re_roof_shake: CostItem
-    flat_roofing: CostItem
+    # re_deck: CostItem
+    # re_roof_shake: CostItem
+    # flat_roofing: CostItem
 
-    steep_8_12: CostItem
-    steep_9_12: CostItem
-    steep_10_12: CostItem
-    steep_11_12: CostItem
-    steep_12_12: CostItem
-    mansard: CostItem
+    # steep_8_12: CostItem
+    # steep_9_12: CostItem
+    # steep_10_12: CostItem
+    # steep_11_12: CostItem
+    # steep_12_12: CostItem
+    # mansard: CostItem
 
-    second_story: CostItem
-    second_layer: CostItem
-    third_layer: CostItem
+    # second_story: CostItem
+    # second_layer: CostItem
+    # third_layer: CostItem
 
-    decking_4x8: CostItem
-    decking_lf: CostItem
+    # decking_4x8: CostItem
+    # decking_lf: CostItem
 
-    chimney_flashing: CostItem
-    skylight_flashing_reflash: CostItem
-    skylight_flashing_new: CostItem
-    replace_skylight: CostItem
+    # chimney_flashing: CostItem
+    # skylight_flashing_reflash: CostItem
+    # skylight_flashing_new: CostItem
+    # replace_skylight: CostItem
 
-    cut_in_box_vent: CostItem
-    cut_in_hip_vent: CostItem
-    cut_in_ridge_vent: CostItem
+    # cut_in_box_vent: CostItem
+    # cut_in_hip_vent: CostItem
+    # cut_in_ridge_vent: CostItem
 
-    slate_tear_off: CostItem
-    cricket_install: CostItem
-    emergency_service_tarps: CostItem
-    dump_fee: CostItem
+    # slate_tear_off: CostItem
+    # cricket_install: CostItem
+    # emergency_service_tarps: CostItem
+    # dump_fee: CostItem

@@ -1,5 +1,3 @@
-import subprocess
-
 from pydantic import BaseModel
 from decimal import Decimal
 
@@ -16,7 +14,7 @@ class Invoice(BaseModel):
     description: str
     items: list[InvoiceItem]
 
-    def copy_items_to_clipboard(self):
+    def get_formatted_csv(self):
         rows = []
         for item in self.items:
             rows.append(
@@ -24,5 +22,4 @@ class Invoice(BaseModel):
                     item.quantity), str(item.unit_price), str(item.amount)])
             )
 
-        subprocess.run(["pbcopy"], input="\n".join(rows), text=True)
-        print("Invoice item rows copied to clipboard!")
+        return "\n".join(rows)
