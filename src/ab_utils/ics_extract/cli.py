@@ -81,7 +81,7 @@ def run(args: argparse.Namespace):
     prompt = args.prompt
 
     if args.events is not None:
-        prompt += f"\n\nIMPORTANT: Expect there to be {args.events} events in the image."
+        prompt = f"{prompt} \n\n IMPORTANT: Expect there to be {args.events} events in the image."
 
     response = fetch_gemini(prompt, GeminiOptions(
         model=args.model,

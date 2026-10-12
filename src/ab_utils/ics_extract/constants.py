@@ -29,8 +29,9 @@ For each qualifying job sheet:
 2. EVENT TITLE
 
 * Format exactly as:
-    "<HOMEOWNER> - Whole Roof"
+    "<homeowner> - <job type>"
 * Use the homeowner's full name as written on the work-order sheet.
+* Write the event title using standard uppercase and lowercase letters only, not caps lock.
 
 3. LOCATION
 
