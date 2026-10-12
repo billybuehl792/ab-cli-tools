@@ -78,8 +78,12 @@ def add_parser(subparsers):
 
 def run(args: argparse.Namespace):
     output_file = Path(args.output)
+    prompt = args.prompt
 
-    response = fetch_gemini(args.prompt, GeminiOptions(
+    if args.events is not None:
+        prompt += f"\n\nIMPORTANT: Expect there to be {args.events} events in the image."
+
+    response = fetch_gemini(prompt, GeminiOptions(
         model=args.model,
         files=args.files,
         response_mime_type=(ResponseMimeType.JSON),
