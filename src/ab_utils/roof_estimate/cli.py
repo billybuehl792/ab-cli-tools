@@ -42,6 +42,9 @@ def add_parser(subparsers):
 
 
 def run(args: argparse.Namespace):
+    is_extract_measurements = args.extract_measurements
+    print("Extracting measurements..." if is_extract_measurements else "Creating roof estimate...")
+
     measurements_path = Path(args.measurements)
     address = args.address
     customer = Customer(name=args.name, address=address,
@@ -64,7 +67,7 @@ def run(args: argparse.Namespace):
         measurements = RoofMeasurements.model_validate_json(
             measurements_path.read_text(), by_name=True)
 
-    if args.extract_measurements:
+    if is_extract_measurements:
         json_output = measurements.model_dump_json(indent=2)
         csv_output = measurements.get_formatted_csv()
     else:

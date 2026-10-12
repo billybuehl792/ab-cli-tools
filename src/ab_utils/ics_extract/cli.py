@@ -77,6 +77,8 @@ def add_parser(subparsers):
 
 
 def run(args: argparse.Namespace):
+    print("Starting ICS extraction...")
+
     output_file = Path(args.output)
     prompt = args.prompt
 

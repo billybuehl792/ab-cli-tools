@@ -34,19 +34,12 @@ def draw_image(c, image_path, x, y, width, height):
         max_dimension = 1600
 
         if max(img.size) > max_dimension:
-            img.thumbnail(
-                (max_dimension, max_dimension),
-                Image.Resampling.LANCZOS,
-            )
+            img.thumbnail((max_dimension, max_dimension),
+                          Image.Resampling.LANCZOS)
 
         # Compress to JPEG in memory.
         buffer = BytesIO()
-        img.save(
-            buffer,
-            format="JPEG",
-            quality=80,
-            optimize=True,
-        )
+        img.save(buffer, format="JPEG", quality=80, optimize=True)
         buffer.seek(0)
 
         compressed_image = ImageReader(buffer)
@@ -66,15 +59,8 @@ def draw_image(c, image_path, x, y, width, height):
     draw_x = x + (width - draw_width) / 2
     draw_y = y + (height - draw_height) / 2
 
-    c.drawImage(
-        compressed_image,
-        draw_x,
-        draw_y,
-        width=draw_width,
-        height=draw_height,
-        preserveAspectRatio=True,
-        anchor="c",
-    )
+    c.drawImage(compressed_image, draw_x, draw_y, width=draw_width,
+                height=draw_height, preserveAspectRatio=True, anchor="c")
 
 
 def draw_header(c, title, subtitle, description, page_width, page_height, margin):
@@ -101,9 +87,7 @@ def draw_header(c, title, subtitle, description, page_width, page_height, margin
         current_line = ""
 
         for word in words:
-            test_line = (
-                f"{current_line} {word}".strip()
-            )
+            test_line = (f"{current_line} {word}".strip())
 
             if stringWidth(test_line, "Helvetica", 9) <= max_width:
                 current_line = test_line
@@ -134,17 +118,7 @@ def draw_header(c, title, subtitle, description, page_width, page_height, margin
     return current_y
 
 
-def create_photosheet(
-    input_dir: Path,
-    output_file: Path,
-    columns: int = 3,
-    rows: int = 3,
-    margin: float = 36,
-    gap: float = 10,
-    title: str | None = None,
-    subtitle: str | None = None,
-    description: str | None = None,
-):
+def create_photosheet(input_dir: Path, output_file: Path, columns: int = 3, rows: int = 3, margin: float = 36, gap: float = 10, title: str | None = None, subtitle: str | None = None, description: str | None = None):
     """Create PDF photosheet with image dir"""
 
     print(f"Creating photosheet from {input_dir.name}/")
@@ -167,47 +141,25 @@ def create_photosheet(
         position = index % photos_per_page
 
         if position == 0:
-
             if index != 0:
                 c.showPage()
-
             if index == 0:
                 # Draw header on first page.
                 photo_top = draw_header(
-                    c,
-                    title,
-                    subtitle,
-                    description,
-                    page_width,
-                    page_height,
-                    margin,
-                )
+                    c, title, subtitle, description, page_width, page_height, margin)
 
-            # Available space for photos.
             photo_bottom = margin
-
             available_height = photo_top - photo_bottom
-
             cell_width = (page_width - (2 * margin) -
                           ((columns - 1) * gap)) / columns
-
             cell_height = (available_height - ((rows - 1) * gap)) / rows
 
         col = position % columns
         row = position // columns
-
         x = margin + col * (cell_width + gap)
-
         y = (photo_top - cell_height - row * (cell_height + gap))
 
-        draw_image(
-            c,
-            image_path,
-            x,
-            y,
-            cell_width,
-            cell_height,
-        )
+        draw_image(c, image_path, x, y, cell_width, cell_height)
 
     c.save()
 
@@ -233,23 +185,23 @@ def add_parser(subparsers):
 
 
 def run(args: argparse.Namespace):
+    print("Starting photosheet creation...")
+
     input_dir = Path(args.folder)
     output_file = Path(args.output)
+    title = args.title
+    subtitle = args.subtitle
+    description = args.description
+    columns = args.columns
+    rows = args.rows
 
     if not input_dir.is_dir():
         raise SystemExit(f"Folder not found: {args.folder}")
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    if args.columns < 1 or args.rows < 1:
+    if columns < 1 or rows < 1:
         raise SystemExit("Columns and rows must be at least 1.")
 
-    create_photosheet(
-        input_dir,
-        output_file,
-        columns=args.columns,
-        rows=args.rows,
-        title=args.title,
-        subtitle=args.subtitle,
-        description=args.description,
-    )
+    create_photosheet(input_dir, output_file, columns=columns, rows=rows,
+                      title=title, subtitle=subtitle, description=description)

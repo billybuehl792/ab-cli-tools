@@ -35,7 +35,8 @@ def add_parser(subparsers):
 
 
 def run(args: argparse.Namespace):
-    prompt = args.prompt
+    print("Starting JSON extraction...")
+
     is_invoice = args.type == "invoice"
     output_file_path = Path(args.output) if args.output else None
     output_file_path_type = output_file_path.suffix.lower().lstrip(
@@ -49,7 +50,7 @@ def run(args: argparse.Namespace):
             raise ValueError(
                 f"CSV output requested but output file type is {output_file_path_type}")
 
-    response = fetch_gemini(prompt, GeminiOptions(
+    response = fetch_gemini(args.prompt, GeminiOptions(
         model=args.model,
         files=args.files or [],
         response_mime_type=(ResponseMimeType.JSON),
