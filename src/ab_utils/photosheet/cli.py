@@ -8,7 +8,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
-from .constants import APP_NAME, IMAGE_EXTENSIONS
+from .constants import AB_LOGO, APP_NAME, IMAGE_EXTENSIONS
 
 
 def get_image_files_from_dir(folder: Path):
@@ -67,6 +67,20 @@ def draw_header(c, title, subtitle, description, page_width, page_height, margin
     """Draw the optional page header and return the amount of space used."""
     current_y = page_height - margin
 
+    # Draw Logo
+    logo_aspect_ratio = 2.32
+    logo_height = 80
+    logo_width = logo_height * logo_aspect_ratio
+
+    page_width, page_height = c._pagesize
+
+    # Center the logo horizontally at the top of the page
+    logo_x = (page_width - logo_width) / 2
+    logo_y = current_y - logo_height
+
+    draw_image(c, AB_LOGO, logo_x, logo_y, logo_width, logo_height)
+    current_y = logo_y - 20
+
     if title:
         c.setFont("Helvetica-Bold", 18)
         c.drawString(margin, current_y, title)
@@ -105,20 +119,14 @@ def draw_header(c, title, subtitle, description, page_width, page_height, margin
 
         current_y -= 5
 
-    # Divider line if anything was added.
-    if title or subtitle or description:
-        c.line(
-            margin,
-            current_y,
-            page_width - margin,
-            current_y,
-        )
-        current_y -= 15
+    # Draw Divider
+    c.line(margin, current_y, page_width - margin, current_y)
+    current_y -= 15
 
     return current_y
 
 
-def create_photosheet(input_dir: Path, output_file: Path, columns: int = 3, rows: int = 3, margin: float = 36, gap: float = 10, title: str | None = None, subtitle: str | None = None, description: str | None = None):
+def create_photosheet(input_dir: Path, output_file: Path, columns: int = 3, rows: int = 3, margin: float = 24, gap: float = 10, title: str | None = None, subtitle: str | None = None, description: str | None = None):
     """Create PDF photosheet with image dir"""
 
     print(f"Creating photosheet from {input_dir.name}/")
@@ -147,6 +155,9 @@ def create_photosheet(input_dir: Path, output_file: Path, columns: int = 3, rows
                 # Draw header on first page.
                 photo_top = draw_header(
                     c, title, subtitle, description, page_width, page_height, margin)
+            else:
+                # Subsequent pages: use the full page height.
+                photo_top = page_height - margin
 
             photo_bottom = margin
             available_height = photo_top - photo_bottom
